@@ -32,10 +32,10 @@ void foo()
 <h2>Forwarding/rvalue references</h2>
 
 <code><pre>
-void foo(T&& t); // rvalue reference
+void foo(T&amp;&amp; t); // rvalue reference
 
 template &lt;typename T&gt;
-void foo(T&& t); // forwarding reference
+void foo(T&amp;&amp; t); // forwarding reference
 </pre></code>
 
 <h2>Definition visible at point of use</h2>
