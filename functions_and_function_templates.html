@@ -1,0 +1,115 @@
+<html>
+<head>
+<title>Differences Between Functions and Function Templates</title>
+</head>
+<body>
+
+<h1>Differences Between Functions and Function Templates</h1>
+
+How different *are* functions and function templates?
+<p>
+One of the areas of discussion around whether or not to include the abbreviated function template syntax from the Concepts TS
+in the C++ WP is the various ways in which functions and function templates differ in the current language; there is concern from 
+some quarters that the abbreviated syntax hides this difference.
+<p>
+It seemed useful to try and collect a list of the main ways in which functions and function templates differ.
+
+<h2>Static Locals</h2>
+
+<code><pre>
+inline void foo()
+{
+   static object theObject; // only one instance
+}
+
+template &lt;typename T&gt;
+void foo()
+{
+   static object theObjects; // one instance <i>per distinct instantiation</i>
+}
+</pre></code>
+
+<h2>Forwarding/rvalue references</h2>
+
+<code><pre>
+void foo(T&& t); // rvalue reference
+
+template &lt;typename T&gt;
+void foo(T&& t); // forwarding reference
+</pre></code>
+
+<h2>Definition visible at point of use</h2>
+
+A function and function template can be declared but not defined in a header.
+At link time a definition of the entity must be provided.
+
+This is easy for a function: simply provide a definition in one of the TUs.
+
+This is in general infeasible for a function template as a specialization must be provided for *every* instantiation that was invoked.
+
+<h2>Selection via <code>f&lt;&gt;(/*...*/)</code></h2>
+
+<h2>template argument deduction</h2>
+
+<h3>vs. implicit conversion sequences</h3>
+
+<h3>contextual</h3>
+
+<h3>initializer lists</h3>
+
+Templates do not allow deduction of initializer list.
+
+<code><pre>
+#include &lt;initializer_list&gt;
+
+void f(std::initializer_list&lt;int&gt; i) {}
+
+template &lt;typename T&gt;
+void ft(T t) {}
+
+int main()
+{   
+    f({1, 3, 5});
+
+    // won't compile; can't deduce initializer_lists
+    ft({1, 3, 5});
+}
+</pre></code>
+
+<h4>Conversion functions</h4>
+<h4>pointers to overload sets</h4>
+<h4>operator delete template</h4>
+
+<h2>overload resolution</h2>
+<h3>SFINAE</h3>
+<h3>partial ordering</h3>
+<h3>tie-breaking</h3>
+
+<h2>Specialization</h2>
+
+<h2>Special members</h2>
+
+Failure to be a special member function (even if the class itself satisfies the concept)
+
+<h2>Delayed checking of default arguments</h2>
+
+<h2>Deferred static_assert</h2>
+
+<h2>(under consideration) multiple overloads with satisfied constraints</h2>
+
+<h2>Dependent names</h2>
+<h3>access to declarations after function (template) declaration</h3>
+<h3>necessity of typename and ::template</h3>
+
+<h2>With abbreviated Concepts syntax</h2>
+<h3>difference between "auto f(X x) -&gt; X;" and "auto f(X x) -&gt; decltype(x);"</h3>
+<h3>deduction (e.g., can't call "void f(Sequence);" with "f({});")</h3>
+<h3>function parameters with visually indistinguishable types</h3>
+<h3>local variables (in any function) with visually indistinguishable types</h3>
+
+<hr>
+Authors:<br>
+David Herring<br>
+Roger Orr
+</body>
+</html>
