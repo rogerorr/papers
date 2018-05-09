@@ -42,9 +42,9 @@ void foo(T&amp;&amp; t); // forwarding reference
 
 A function and function template can be declared but not defined in a header.
 At link time a definition of the entity must be provided.
-
+<p>
 This is easy for a function: simply provide a definition in one of the TUs.
-
+<p>
 This is in general infeasible for a function template as a specialization must be provided for *every* instantiation that was invoked.
 
 <h2>Selection via <code>f&lt;&gt;(/*...*/)</code></h2>
@@ -109,7 +109,7 @@ Failure to be a special member function (even if the class itself satisfies the 
 
 <hr>
 Authors:<br>
-David Herring<br>
+Davis Herring<br>
 Roger Orr
 </body>
 </html>
