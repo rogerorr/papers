@@ -3,7 +3,7 @@ enum E { e };
 
 void g(E t) {
   f(1); // f(char)
-  f(t); // Error
+  f(t); // f(char) !
 }
 
 void f(E);

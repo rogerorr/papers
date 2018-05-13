@@ -365,9 +365,9 @@ The equivalent case for a function has <i>different</i> behaviour:
 void f(char);
 enum E { e };
 
-template&lt;class T&gt; void g(T t) {
+void g(E t) {
   f(1); // f(char)
-  f(t); // dependent
+  f(t); // f(char) !
 }
 
 void f(E);
@@ -432,6 +432,7 @@ Thanks to those who gave additional suggestions and examples, including:
 <li>Richard Smith
 <li>Hubert Matthews
 <li>Sam Finch
+<li>Thomas Russell
 </ul>
 </body>
 </html>
