@@ -269,7 +269,7 @@ int main()
   bar(1.0);
 }
 </pre></code> -- <i>end example</i>]
-
+<p>
 For a function template you can specify an instantation explicitly by providing the template arguments.
 
 <p>
@@ -332,9 +332,11 @@ void foo(int i)
 template&lt;typename T&gt;
 void bar(T t)
 {
-  static_assert(sizeof(T) == 0); //Error *when instantiated*
+  static_assert(sizeof(T) == 0); // Error *when instantiated*
 }
 </pre></code> -- <i>end example</i>]
+<p>
+[<i>Note:</i> Since no valid instantiation is possible, this specific example is ill-formed, no diagnostic required. However I know of no compiler that produces a diagnostic. -- <i>end note</i>]
 
 <h2>Dependent names</h2>
 <h3>Access to declarations after function (template) declaration</h3>
