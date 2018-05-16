@@ -14,7 +14,25 @@ some quarters that the abbreviated syntax hides this difference.
 <p>
 It seemed useful to try and collect an informal list of the main ways in which functions and function templates differ.
 
-<h2>Forwarding/rvalue references</h2>
+Here is a brief summary, follow the link for an expansion:
+<ul>
+<li><a href="#forwarding">Forwarding/rvalue references</a>
+<li><a href="#definition_visibility">Definition visible at point of use<a/>
+<li><a href="#static_locals">Static Locals</a>
+<li><a href="#function_addresses">Function addresses</a>
+<li><a href="#local_types">Local types are distinct</a>
+<li><a href="#odr">The One Definition Rule</a>
+<li><a href="#argument_deduction">Template argument deduction</a>
+<li><a href="#overload_resolution">Overload resolution</a>
+<li><a href="#selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a>
+<li><a href="#specialization">Specialization</a>
+<li><a href="#special_members">Special members</a>
+<li><a href="#delayed_checking">Deferred checking</a>
+<li><a href="#default_arguments">Delayed checking of default arguments</a>
+<li><a href="#dependent_name">Dependent names</a>
+</ul>
+
+<h2><a name="forwarding">Forwarding/rvalue references</a></h2>
 
 A declaration of a function argument with type <code>T&amp;&amp;</code> is an rvalue reference.
 <br>
@@ -37,7 +55,7 @@ int main()
 }
 </pre></code> -- <i>end example</i>]
 
-<h2>Definition visible at point of use</h2>
+<h2><a name="definition_visibility">Definition visible at point of use<a/></h2>
 
 A function and function template can be declared but not defined in a header.
 At link time a definition of the entity must be provided.
@@ -51,7 +69,7 @@ a single .cpp file.<br>
 Then you want to use it elsewhere, so you move the definition into a public namespace, and put
 the declaration in a header so you can use it in a second .cpp file.
 
-<h2>Static Locals</h2>
+<h2><a name="static_locals">Static Locals</a></h2>
 
 In a function there is a single instance of a function-scope static; for a function template there is one instance per distinct instantiation.
 
@@ -69,7 +87,7 @@ void foo()
 }
 </pre></code> -- <i>end example</i>]
 
-<h2>Function addresses</h2>
+<h2><a name="function_addresses">Function addresses</a></h2>
 
 There is a single address for a function, for a function template there is potentially a separate address for each instantiation.
 <p>
@@ -77,17 +95,17 @@ Control flow extensions such as GNU "address of label" can observe that distinct
 <p>
 A (non-inlined) function has a single instantiation in a program; multiple instantiations of a (non-inlined) function template increase the code size.
 
-<h2>Local types are distinct</h2>
+<h2><a name="local_types">Local types are distinct</a></h2>
 
 If a local type is defined within a function template each instantiation of the function template produces a <i>distinct</i> type.
 
-<h2>The One Definition Rule</h2>
+<h2><a name="odr">The One Definition Rule</a></h2>
 
 A function definition can only be provided <b>once</b> in a given program (unless the function is marked <code>inline</code>.)
 <p>
 A function template can be defined in <i>multiple</i> translation units, and the linker will pick one copy of each actual instantiation.
 
-<h2>Template argument deduction</h2>
+<h2><a name="argument_deduction">Template argument deduction</a></h2>
 
 <h3>vs. implicit conversion sequences</h3>
 
@@ -218,7 +236,7 @@ int main(int, char**){
 
 <h4>Operator delete template</h4>
 
-<h2>Overload resolution</h2>
+<h2><a name="overload_resolution">Overload resolution</a></h2>
 
 <h3>SFINAE</h3>
 
@@ -234,7 +252,7 @@ The partial ordering rules for overloaded functions and function templates are d
 In the case of a tie-break between two functions or between two function templates the program is ill-formed.<br>
 In the case of a tie-break between a function and a function template the function wins.
 
-<h2>Selection via <code>f&lt;&gt;(/*...*/)</code></h2>
+<h2><a name="selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a></h2>
 
 For a function template you can select the template explicitly by providing an empty template argument lists.
 
@@ -252,7 +270,7 @@ int main()
 }
 </pre></code> -- <i>end example</i>]
 
-<h2>Specialization</h2>
+<h2><a name="specialization">Specialization</a></h2>
 
 For a function template you can provide explicit specializations.
 
@@ -283,33 +301,11 @@ int main()
 }
 </pre></code> -- <i>end example</i>]
 
-<h2>Special members</h2>
+<h2><a name="special_members">Special members</a></h2>
 
 A function template cannot be a special member function (even if the function itself satisfies the concept.)
 
-<h2>Delayed checking of default arguments</h2>
-
-The handling of default arguments is different as they are checked at declaration time for functions, but at instantiation for function templates.
-
-<p>
-[<i>Example:</i> <code><pre>
-struct X {};
-
-void foo(X arg = 42); // Error, even if default never used
-
-template&lt;typename T&gt;
-void bar(T arg = 42); // Ok
-
-int main()
-{
-  X x;
-  foo(x);
-  bar(x); // Ok
-  bar<X>(); // Error only if default <i>used</i>
-}
-</pre></code> -- <i>end example</i>]
-
-<h2>Deferred checking</h2>
+<h2><a name="delayed_checking">Deferred checking</a></h2>
 
 A function is compiled when the definition is reached.
 <p>
@@ -338,7 +334,29 @@ void bar(T t)
 <p>
 [<i>Note:</i> Since no valid instantiation is possible, this specific example is ill-formed, no diagnostic required. However I know of no compiler that produces a diagnostic. -- <i>end note</i>]
 
-<h2>Dependent names</h2>
+<h2><a name="default_arguments">Delayed checking of default arguments</a></h2>
+
+The handling of default arguments is different as they are checked at declaration time for functions, but at instantiation for function templates.
+
+<p>
+[<i>Example:</i> <code><pre>
+struct X {};
+
+void foo(X arg = 42); // Error, even if default never used
+
+template&lt;typename T&gt;
+void bar(T arg = 42); // Ok
+
+int main()
+{
+  X x;
+  foo(x);
+  bar(x); // Ok
+  bar<X>(); // Error only if default <i>used</i>
+}
+</pre></code> -- <i>end example</i>]
+
+<h2><a name="dependent_name">Dependent names</a></h2>
 <h3>Access to declarations after function (template) declaration</h3>
 
 <p>
