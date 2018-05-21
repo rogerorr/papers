@@ -18,10 +18,10 @@ Here is a brief summary, follow the link for an expansion:
 <ul>
 <li><a href="#forwarding">Forwarding/rvalue references</a>
 <li><a href="#definition_visibility">Definition visible at point of use<a/>
+<li><a href="#odr">The One Definition Rule</a>
 <li><a href="#static_locals">Static Locals</a>
 <li><a href="#function_addresses">Function addresses</a>
 <li><a href="#local_types">Local types are distinct</a>
-<li><a href="#odr">The One Definition Rule</a>
 <li><a href="#argument_deduction">Template argument deduction</a>
 <li><a href="#overload_resolution">Overload resolution</a>
 <li><a href="#selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a>
@@ -62,16 +62,24 @@ At link time a definition of the entity must be provided.
 <p>
 For a function this simply involves providing a definition in one of the TUs.
 <p>
-This is in general infeasible for a function template as a specialization must be provided for *every* instantiation that might be invoked.
+This is in general infeasible for a function template as a specialization or explicit instantiation must be provided for <b>every</b> instantiation that might be invoked.
+<p>
+(Additionally, such explicit specializations must be <i>declared</i> in every translation unit, although absence may not be diagnosed by all implementations.)
 <p>
 This can be a problem as code changes: you might for example start with a function in an anonymous namespace, used in
 a single .cpp file.<br>
 Then you want to use it elsewhere, so you move the definition into a public namespace, and put
 the declaration in a header so you can use it in a second .cpp file.
 
+<h2><a name="odr">The One Definition Rule</a></h2>
+
+A function definition can only be provided <b>once</b> in a given program (unless the function is marked <code>inline</code>.)
+<p>
+A function template can be defined in <i>multiple</i> translation units, and the linker will pick one copy of each actual instantiation.
+
 <h2><a name="static_locals">Static Locals</a></h2>
 
-In a function there is a single instance of a function-scope static; for a function template there is one instance per distinct instantiation.
+In a function there is a single instance of a function-scope static; for a function template there is one instance per instantiation.
 
 <p>
 [<i>Example:</i> <code><pre>
@@ -83,7 +91,7 @@ inline void foo()
 template &lt;typename T&gt;
 void foo()
 {
-   static object theObjects; // one instance <i>per distinct instantiation</i>
+   static object theObjects; // one instance <i>per T</i>
 }
 </pre></code> -- <i>end example</i>]
 
@@ -98,12 +106,19 @@ A (non-inlined) function has a single instantiation in a program; multiple insta
 <h2><a name="local_types">Local types are distinct</a></h2>
 
 If a local type is defined within a function template each instantiation of the function template produces a <i>distinct</i> type.
-
-<h2><a name="odr">The One Definition Rule</a></h2>
-
-A function definition can only be provided <b>once</b> in a given program (unless the function is marked <code>inline</code>.)
 <p>
-A function template can be defined in <i>multiple</i> translation units, and the linker will pick one copy of each actual instantiation.
+[<i>Example:</i> <code><pre>
+template&lt;class T&gt;
+auto f(const T&amp;) {
+  struct A {};
+  return A{};
+}
+
+void g(short s) {
+  auto a=f(s);
+  a=f(s+1);      // error -- type mismatch
+}
+</pre></code> -- <i>end example</i>]
 
 <h2><a name="argument_deduction">Template argument deduction</a></h2>
 
@@ -129,10 +144,26 @@ int main()
   bar(x, y); // Error
 }
 </pre></code> -- <i>end example</i>]
+<p>
+or a case using conversion:
+<p>
+[<i>Example:</i> <code><pre>
+template&lt;typename T&gt;
+struct X { X(T); };
 
-<h3>Contextual cases</h3>
+template&lt;class T&gt;
+bool operator==(X&lt;T&gt;, X&lt;T&gt;);  // non-member allows conversions, right?
 
-<h4>Initializer lists</h4>
+bool zero(X&lt;int&gt; x) {return x==0;}  // error: deduction failed
+
+struct Y{Y(int);};
+
+bool operator==(Y, Y);
+
+bool zero(Y y) {return y==0;}  // Ok
+</pre></code> -- <i>end example</i>]
+
+<h3>Initializer lists</h3>
 
 Templates do not allow deduction of initializer list.
 
@@ -154,26 +185,19 @@ int main()
 }
 </pre></code> -- <i>end example</i>]
 
+<h3>Contextual cases</h3>
+
 <h4>Conversion functions</h4>
 
-Function templates overload resolution does not consider conversion functions.
+There are different rules for deduction for a conversion function template.
 
-<p>
 [<i>Example:</i> <code><pre>
-struct X{};
-struct Y { operator X() const; };
+auto f() {
+  auto x=[](int){};
+  auto y=[](auto){};
 
-void foo(X, X);
-
-template&lt;typename T&gt;
-void bar(T, T);
-
-int main()
-{
-  X x;
-  Y y;
-  foo(x, y); // Ok
-  bar(x, y); // Error
+  auto z=+y;   // error: no conversion found
+  return +x;   // OK
 }
 </pre></code> -- <i>end example</i>]
 
@@ -210,31 +234,47 @@ There are differences between using functions and using function templates as ar
 #include &lt;iostream&gt;
 
 template&lt;class T&gt;
-T f_template(const T&amp; arg){
+T f_template(const T &amp;arg){
   return arg;
 }
-int f_int(const int&amp; arg){
+int f_int(const int &amp;arg){
   return arg;
 }
-auto f_lambda = [](const int&amp; arg){
+auto f_lambda = [](const int &amp;arg){
   return arg;
 };
 
+auto f_glambda = [](const auto &amp;arg){
+  return arg;
+}
 
 template&lt;class F, class T&gt;
-auto call_me(F f, const T&amp; arg){
+auto call_me(F f, const T&amp;arg){
   return f(arg);
 }
 
 int main(int, char**){
-  std::cout &lt;&lt; call_me(f_int, 42) &lt;&lt; "\n";            // works
+  std::cout &lt;&lt; call_me(f_int, 42) &lt;&lt; "\n";        // works
   std::cout &lt;&lt; call_me(f_lambda, 42) &lt;&lt; "\n";     // works
-  std::cout &lt;&lt; call_me(f_template, 42) &lt;&lt; "\n";   // doesn't work
-
+  std::cout &lt;&lt; call_me(f_glambda, 42) &lt;&lt; "\n";    // generic lambda works
+  std::cout &lt;&lt; call_me(f_template, 42) &lt;&lt; "\n";   // template doesn't work
 }
 </pre></code> -- <i>end example</i>]
 
 <h4>Operator delete template</h4>
+
+An operator delete template behaves differently from a non-template.
+<p>
+[<i>Example:</i> <code><pre>
+struct A {
+  A() {throw 0;}
+  void* operator new(std::size_t,int,short);
+  template&lt;class T&gt;
+  void operator delete(void*,T,T);
+};
+
+void f() {new (0,0) A;} // no deallocation function called
+</pre></code> -- <i>end example</i>]
 
 <h2><a name="overload_resolution">Overload resolution</a></h2>
 
@@ -247,11 +287,42 @@ Functions are either present or not present and there are no techniques to remov
 
 The partial ordering rules for overloaded functions and function templates are different.
 
+<p>
+[<i>Example:</i> <code><pre>
+template&lt;class T&gt;
+void f(T*);         // #1
+template&lt;class T&gt;
+void f(T**);        // #2
+
+void g(int*);       // g ~ f&lt;int&gt;
+void g(int**);      // and yet...
+
+void h() {
+  f&lt;int&gt;(nullptr);  // OK: calls #2
+  g(nullptr);       // error: ambiguous
+}
+</pre></code> -- <i>end example</i>]
+
 <h3>Tie-breaking</h3>
 
-In the case of a tie-break between two functions or between two function templates the program is ill-formed.<br>
 In the case of a tie-break between a function and a function template the function wins.
 
+<h3>Explicit specializations</h3>
+
+The interaction between overloading (based on the primary template) and explicit specializations can be confusing.
+<p>
+[<i>Example:</i> <code><pre>
+template&lt;class T&gt;
+void f(const T&);               // #1
+template&lt;&gt; void f(const int&);  // #2: specializes #1
+
+void f(volatile int&);          // #3
+
+void g(int i) {f(i);}           // calls #3
+</pre></code> -- <i>end example</i>]
+
+If we added one (more) template parameter to each of the three declarations of f, the call would become ambiguous.
+ 
 <h2><a name="selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a></h2>
 
 For a function template you can select the template explicitly by providing an empty template argument lists.
@@ -272,7 +343,7 @@ int main()
 
 <h2><a name="specialization">Specialization</a></h2>
 
-For a function template you can provide explicit specializations.
+For a function template you can provide explicit specializations (you obviously cannot for a non-template.)
 
 <p>
 [<i>Example:</i> <code><pre>
@@ -297,7 +368,7 @@ void bar(T);
 
 int main()
 {
-  bar<int>(1.0);
+  bar&lt;int&gt;(1.0);
 }
 </pre></code> -- <i>end example</i>]
 
@@ -312,7 +383,19 @@ A function is compiled when the definition is reached.
 A function template has two phases of compilation, once when the definition is reached and once when the function is instantiated.
 <br>
 This can mean there is no guarantee of validity checking until instantiation.
-
+<p>
+[<i>Example:</i> <code><pre>
+template&lt;class T&gt;
+bool equal(const Container&lt;T&gt; &amp;c,const T *a) {
+  for(int i=0;i&lt;c.size();++i)
+    if(c[i]!=a) return false;
+  return true;
+}
+</pre></code> -- <i>end example</i>]
+<p>
+The expression <code>c[i]!=a</code> is comparing a <code>T</code> against a <code>T*</code> and will (almost certainly) fail at instantiation.
+<br>
+(And even it instantiates, it's unlikely to be the correct semantics!)
 <h3>Deferred checking - static_assert</h3>
 
 In a function a <code>static_assert</code> triggers at definition time.
@@ -322,17 +405,17 @@ In a function template a (dependent) <code>static_assert</code> triggers at inst
 [<i>Example:</i> <code><pre>
 void foo(int i)
 {
-  static_assert(sizeof(i) == 0); // Error
+  static_assert(sizeof(i) == 88); // Error (typo for '8')
 }
 
 template&lt;typename T&gt;
 void bar(T t)
 {
-  static_assert(sizeof(T) == 0); // Error *when instantiated*
+  static_assert(sizeof(int) == 88); // Error when definition parsed (non-dependent)
+  static_assert(sizeof(T) == 88); // Error <b>when instantiated</b> (dependent)
 }
 </pre></code> -- <i>end example</i>]
 <p>
-[<i>Note:</i> Since no valid instantiation is possible, this specific example is ill-formed, no diagnostic required. However I know of no compiler that produces a diagnostic. -- <i>end note</i>]
 
 <h2><a name="default_arguments">Delayed checking of default arguments</a></h2>
 
@@ -436,9 +519,24 @@ template&lt;class T&gt; void f(T* p) {
 
 <h2>(under consideration) multiple overloads with satisfied constraints</h2>
 
+Does Evolution intend to permit multiple, otherwise indistinguishable overloads of non-template functions with satisfied constraints?
+(The idea, if we remember it correctly, was that implementers (currently) evaluate such requires clauses eagerly, producing nothing more than "true" with which to distinguish them.)
+
+Among template specializations, you can easily have multiple such overloads.
+<p>
+[<i>Example:</i> <code><pre>
+template&lt;class T&gt;
+void f(T*) requires Integral&lt;T&gt;;   // #1
+template&lt;class T&gt;
+void f(T**) requires Integral&lt;T&gt;;  // #2
+
+void g(int *i) {f(&i);} // calls #2 due to partial ordering
+</pre></code> -- <i>end example</i>]
+<p>
+where <code>(f#1)&lt;int*&gt;</code> and <code>(f#2)&lt;int&gt;</code> are candidates with the same signature (as normal functions, not according to [defns.signature.spec]!) and satisfied constraints.
+
 <h2>With abbreviated Concepts syntax</h2>
 <h3>Difference between "auto f(X x) -&gt; X;" and "auto f(X x) -&gt; decltype(x);"</h3>
-<h3>Deduction (e.g., can't call "void f(Sequence);" with "f({});")</h3>
 <h3>Function parameters with visually indistinguishable types</h3>
 <h3>Local variables (in any function) with visually indistinguishable types</h3>
 
