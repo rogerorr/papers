@@ -284,9 +284,9 @@ void f() {new (0,0) A;} // no deallocation function called
 Function templates that cannot be substituted into are simply removed from the overload set.<br>
 Functions are either present or not present and there are no techniques to remove them from consideration for particular types of argument.
 
-<h3>Partial ordering</h3>
+<h3>Best viable function</h3>
 
-The partial ordering rules for overloaded functions and function templates are different.
+The rules for determining the best viable function for overloaded functions and function templates are different.
 
 <p>
 [<i>Example:</i> <pre>
