@@ -314,10 +314,10 @@ The interaction between overloading (based on the primary template) and explicit
 <p>
 [<i>Example:</i> <pre>
 template&lt;class T&gt;
-void f(const T&);               // #1
-template&lt;&gt; void f(const int&);  // #2: specializes #1
+void f(const T&amp;);               // #1
+template&lt;&gt; void f(const int&amp;);  // #2: specializes #1
 
-void f(volatile int&);          // #3
+void f(volatile int&amp;);          // #3
 
 void g(int i) {f(i);}           // calls #3
 </pre> -- <i>end example</i>]
@@ -564,10 +564,10 @@ Whether to specialize or overload depends on whether the first declaration is a 
    struct Button : Widget {};
 
    // user code
-   void f(Container&) {}
+   void f(Container&amp;) {}
    template&lt;&gt; void f(std::vector&lt;int&gt;&amp;) {} // OK
 
-   void g(Widget&) {}
+   void g(Widget&amp;) {}
    template&lt;&gt; void g(Button&amp;) {} // error
 </pre> -- <i>end example</i>]
 <p>
