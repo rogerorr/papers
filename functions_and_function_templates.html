@@ -23,7 +23,7 @@ There are a number of differences between functions and function templates in C+
 inclusion of abbreviated function template syntax from the Concepts TS in the C++ WP.
 <br>
 This informal list of the main ways in which functions and function templates differ was assembled for that discussion,
-so is proved as a P paper for use in a more general context.
+so it is now published as a paper for use in a more general context.
 
 <h2>Contents</h2>
 <ol>
@@ -43,7 +43,7 @@ so is proved as a P paper for use in a more general context.
   <li><a href="#delayed_checking">Deferred checking</a>
   <li><a href="#default_arguments">Delayed checking of default arguments</a>
   <li><a href="#dependent_name">Dependent names</a>
-  <li><a href="specialize_or_overload">Specialize or Overload</a>
+  <li><a href="#specialize_or_overload">Specialize or Overload</a>
   </ul>
 <li><a href="history">Revision History</a>
 <li><a href="acknowlegements">Acknowledgements</a>
@@ -72,8 +72,8 @@ void bar(T&amp;&amp; t); // forwarding reference
 int main()
 {
    T t{};
-   foo(t); // Error, cannot bind rvalue ref to t
-   bar(t); // Ok, reference collapse to T&amp;
+   foo(t); // error: cannot bind rvalue ref to t
+   bar(t); // OK: reference collapse to T&amp;
 }
 </pre> -- <i>end example</i>]
 
@@ -162,27 +162,27 @@ int main()
 {
   X x;
   Y y;
-  foo(x, y); // Ok
-  bar(x, y); // Error
+  foo(x, y); // OK
+  bar(x, y); // error
 }
 </pre> -- <i>end example</i>]
 <p>
 or a different case:
 <p>
 [<i>Example:</i> <pre>
-struct X{X(int);};
+struct X{X(int) {} };
 
 bool operator==(X, X);
 
-bool zero(X x) {return x==0;}  // Ok
+bool zero(X x) {return x == 0;}  // OK
 
 template&lt;typename T&gt;
-struct Y { Y(T); };
+struct Y { Y(T) {} };
 
 template&lt;class T&gt;
 bool operator==(Y&lt;T&gt;, Y&lt;T&gt;);  // non-member allows conversions, right?
 
-bool zero(Y&lt;int&gt; y) {return y==0;}  // error: deduction failed
+bool zero(Y&lt;int&gt; y) {return y == 0;}  // error: deduction failed
 
 </pre> -- <i>end example</i>]
 
@@ -203,8 +203,7 @@ int main()
 {   
     f({1, 3, 5});
 
-    // won't compile; can't deduce initializer_lists
-    ft({1, 3, 5});
+    ft({1, 3, 5}); // error: can't deduce initializer_list
 }
 </pre> -- <i>end example</i>]
 
@@ -216,10 +215,10 @@ Deduction is required to use a conversion function template.
 
 [<i>Example:</i> <pre>
 auto f() {
-  auto x=[](int){};
-  auto y=[](auto){};
+  auto x = [](int){};
+  auto y = [](auto){};
 
-  auto z=+y;   // error: no conversion found
+  auto z = +y;   // error: no conversion found
   return +x;   // OK
 }
 </pre> -- <i>end example</i>]
@@ -242,9 +241,9 @@ void bar(T, T);
 
 int main()
 {
-  auto foo_ptr = &amp;foo; // Ok
-  auto bar_ptr = &amp;bar; // Error
-  void (*barX_ptr)(X, X) = &amp;bar; // Ok
+  auto foo_ptr = &amp;foo; // OK
+  auto bar_ptr = &amp;bar; // error
+  void (*barX_ptr)(X, X) = &amp;bar; // OK
 }
 </pre> -- <i>end example</i>]
 
@@ -442,14 +441,14 @@ In a function template a (dependent) <code>static_assert</code> triggers at inst
 [<i>Example:</i> <pre>
 void foo(int i)
 {
-  static_assert(sizeof(i) == 88); // Error (typo for '8')
+  static_assert(sizeof(i) == 88); // asserts: (typo for '8')
 }
 
 template&lt;typename T&gt;
 void bar(T t)
 {
-  static_assert(sizeof(int) == 88); // Error can be diagnosed when definition parsed (non-dependent)
-  static_assert(sizeof(T) == 88); // Error <b>when instantiated</b> (dependent)
+  static_assert(sizeof(int) == 88); // asserts when definition parsed (non-dependent)
+  static_assert(sizeof(T) == 88); // asserts <b>when instantiated</b> (dependent)
 }
 </pre> -- <i>end example</i>]
 <p>
@@ -462,17 +461,16 @@ The handling of default arguments is different as they are checked at declaratio
 [<i>Example:</i> <pre>
 struct X {};
 
-void foo(X arg = 42); // Error, even if default never used
+void foo(X arg = 42); // error: even if default argument never used
 
 template&lt;typename T&gt;
-void bar(T arg = 42); // Ok
+void bar(T arg = 42); // OK
 
 int main()
 {
   X x;
-  foo(x);
-  bar(x); // Ok
-  bar&lt;X&gt;(); // Error only if default <i>used</i>
+  bar(x); // OK
+  bar&lt;X&gt;(); // error: only if default argument <i>used</i>
 }
 </pre> -- <i>end example</i>]
 
