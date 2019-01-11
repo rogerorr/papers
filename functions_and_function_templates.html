@@ -1,39 +1,60 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<title>Differences Between Functions and Function Templates</title>
+<title>D1392R0: Differences Between Functions and Function Templates</title>
 </head>
 <body>
 
-<h1>Differences Between Functions and Function Templates</h1>
+<html>
+<head>
 
-How different <b>are</b> functions and function templates?
-<p>
-One of the areas of discussion around whether or not to include the abbreviated function template syntax from the Concepts TS
-in the C++ WP is the various ways in which functions and function templates differ in the current language; there is concern from 
-some quarters that the abbreviated syntax hides this difference.
-<p>
-It seemed useful to try and collect an informal list of the main ways in which functions and function templates differ.
+<body>
+ISO/IEC JTC1 SC22 WG21 D1392R0<br/>
+Davis Herring &lt;herring@lanl.gov&gt;<br/>
+Roger Orr &lt;rogero@howzatt.demon.co.uk&gt;<br/>
+Target audience: All of WG21<br/>
+2019-01-11<br/>
 
-Here is a brief summary, follow the link for an expansion:
-<ul>
-<li><a href="#forwarding">Forwarding/rvalue references</a>
-<li><a href="#definition_visibility">Definition visible at point of use</a>
-<li><a href="#odr">The One Definition Rule</a>
-<li><a href="#static_locals">Static Locals</a>
-<li><a href="#function_addresses">Function addresses</a>
-<li><a href="#local_types">Local types are distinct</a>
-<li><a href="#argument_deduction">Template argument deduction</a>
-<li><a href="#overload_resolution">Overload resolution</a>
-<li><a href="#selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a>
-<li><a href="#specialization">Specialization</a>
-<li><a href="#special_members">Special members</a>
-<li><a href="#delayed_checking">Deferred checking</a>
-<li><a href="#default_arguments">Delayed checking of default arguments</a>
-<li><a href="#dependent_name">Dependent names</a>
-</ul>
+<h1 align="center">Differences Between Functions and Function Templates</h1>
 
-<h2><a name="forwarding">Forwarding/rvalue references</a></h2>
+<h2>Abstract</h2>
+
+There are a number of differences between functions and function templates in C++. This was highlighted during the discussion around 
+inclusion of abbreviated function template syntax from the Concepts TS in the C++ WP.
+<br>
+This informal list of the main ways in which functions and function templates differ was assembled for that discussion,
+so is proved as a P paper for use in a more general context.
+
+<h2>Contents</h2>
+<ol>
+<li><a href="differences">List of Differences</a>
+  <ul>
+  <li><a href="#forwarding">Forwarding/rvalue references</a>
+  <li><a href="#definition_visibility">Definition visible at point of use</a>
+  <li><a href="#odr">The One Definition Rule</a>
+  <li><a href="#static_locals">Static Locals</a>
+  <li><a href="#function_addresses">Function addresses</a>
+  <li><a href="#local_types">Local types are distinct</a>
+  <li><a href="#argument_deduction">Template argument deduction</a>
+  <li><a href="#overload_resolution">Overload resolution</a>
+  <li><a href="#selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a>
+  <li><a href="#specialization">Specialization</a>
+  <li><a href="#special_members">Special members</a>
+  <li><a href="#delayed_checking">Deferred checking</a>
+  <li><a href="#default_arguments">Delayed checking of default arguments</a>
+  <li><a href="#dependent_name">Dependent names</a>
+  <li><a href="specialize_or_overload">Specialize or Overload</a>
+  </ul>
+<li><a href="history">Revision History</a>
+<li><a href="acknowlegements">Acknowledgements</a>
+</ol>
+
+<hr>
+<h2><a name="differences">List of Differences</a></h2>
+
+Here is a list of differences: there is no particular significance to their order.
+
+<h3><a name="forwarding">Forwarding/rvalue references</a></h3>
 
 A declaration of a function argument with type <code>T&amp;&amp;</code> is an rvalue reference.
 <br>
@@ -56,7 +77,7 @@ int main()
 }
 </pre> -- <i>end example</i>]
 
-<h2><a name="definition_visibility">Definition visible at point of use</a></h2>
+<h3><a name="definition_visibility">Definition visible at point of use</a></h3>
 
 A function and function template can be declared but not defined in a header.
 At link time a definition of the entity must be provided.
@@ -72,13 +93,13 @@ a single .cpp file.<br>
 Then you want to use it elsewhere, so you move the definition into a public namespace, and put
 the declaration in a header so you can use it in a second .cpp file.
 
-<h2><a name="odr">The One Definition Rule</a></h2>
+<h3><a name="odr">The One Definition Rule</a></h3>
 
-A function definition can only be provided <b>once</b> in a given program (unless the function is marked <code>inline</code>.)
+A function definition can only be provided <b>once</b> in a given program (unless the function is marked <code>inline</code>).
 <p>
 A function template can be defined in <i>multiple</i> translation units, and the linker will pick one copy of each actual instantiation.
 
-<h2><a name="static_locals">Static Locals</a></h2>
+<h3><a name="static_locals">Static Locals</a></h3>
 
 In a function there is a single instance of a function-scope static; for a function template there is one instance per instantiation.
 
@@ -96,7 +117,7 @@ void foo()
 }
 </pre> -- <i>end example</i>]
 
-<h2><a name="function_addresses">Function addresses</a></h2>
+<h3><a name="function_addresses">Function addresses</a></h3>
 
 There is a single address for a function, for a function template there is potentially a separate address for each instantiation.
 <p>
@@ -104,7 +125,7 @@ Control flow extensions such as GNU "address of label" can observe that distinct
 <p>
 A (non-inlined) function has a single instantiation in a program; multiple instantiations of a (non-inlined) function template increase the code size.
 
-<h2><a name="local_types">Local types are distinct</a></h2>
+<h3><a name="local_types">Local types are distinct</a></h3>
 
 If a local type is defined within a function template each instantiation of the function template produces a <i>distinct</i> type.
 <p>
@@ -121,7 +142,7 @@ void g(short s) {
 }
 </pre> -- <i>end example</i>]
 
-<h2><a name="argument_deduction">Template argument deduction</a></h2>
+<h3><a name="argument_deduction">Template argument deduction</a></h3>
 
 <h3>vs. implicit conversion sequences</h3>
 
@@ -149,19 +170,20 @@ int main()
 or a different case:
 <p>
 [<i>Example:</i> <pre>
+struct X{X(int);};
+
+bool operator==(X, X);
+
+bool zero(X x) {return x==0;}  // Ok
+
 template&lt;typename T&gt;
-struct X { X(T); };
+struct Y { Y(T); };
 
 template&lt;class T&gt;
-bool operator==(X&lt;T&gt;, X&lt;T&gt;);  // non-member allows conversions, right?
+bool operator==(Y&lt;T&gt;, Y&lt;T&gt;);  // non-member allows conversions, right?
 
-bool zero(X&lt;int&gt; x) {return x==0;}  // error: deduction failed
+bool zero(Y&lt;int&gt; y) {return y==0;}  // error: deduction failed
 
-struct Y{Y(int);};
-
-bool operator==(Y, Y);
-
-bool zero(Y y) {return y==0;}  // Ok
 </pre> -- <i>end example</i>]
 
 <h3>Initializer lists</h3>
@@ -190,7 +212,7 @@ int main()
 
 <h4>Conversion functions</h4>
 
-There are different rules for deduction for a conversion function template.
+Deduction is required to use a conversion function template.
 
 [<i>Example:</i> <pre>
 auto f() {
@@ -277,7 +299,7 @@ struct A {
 void f() {new (0,0) A;} // no deallocation function called
 </pre> -- <i>end example</i>]
 
-<h2><a name="overload_resolution">Overload resolution</a></h2>
+<h3><a name="overload_resolution">Overload resolution</a></h3>
 
 <h3>SFINAE</h3>
 
@@ -324,7 +346,7 @@ void g(int i) {f(i);}           // calls #3
 <p>
 If we added one (more) template parameter to each of the three declarations of f, the call would become ambiguous.
  
-<h2><a name="selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a></h2>
+<h3><a name="selection">Selection via <code>f&lt;&gt;(/*...*/)</code></a></h3>
 
 For a function template you can select the template explicitly by providing an empty template argument list.
 
@@ -342,7 +364,7 @@ int main()
 }
 </pre> -- <i>end example</i>]
 
-<h2><a name="specialization">Specialization</a></h2>
+<h3><a name="specialization">Specialization</a></h3>
 
 For a function template you can provide explicit specializations (you obviously cannot for a non-template.)
 
@@ -373,9 +395,9 @@ int main()
 }
 </pre> -- <i>end example</i>]
 
-<h2><a name="special_members">Special members</a></h2>
+<h3><a name="special_members">Special members</a></h3>
 
-A function template cannot be a special member function (even if the function itself satisfies the concept.)
+A function template cannot be a special member function, even if some specialization of it meets the requirements.
 <p>
 [<i>Example:</i> (from [class.copy.ctor] p5) <pre>
 struct S {
@@ -391,7 +413,7 @@ void h() {
 }
 </pre> -- <i>end example</i>]
 <p>
-<h2><a name="delayed_checking">Deferred checking</a></h2>
+<h3><a name="delayed_checking">Deferred checking</a></h3>
 
 A function is compiled when the definition is reached.
 <p>
@@ -432,7 +454,7 @@ void bar(T t)
 </pre> -- <i>end example</i>]
 <p>
 
-<h2><a name="default_arguments">Delayed checking of default arguments</a></h2>
+<h3><a name="default_arguments">Delayed checking of default arguments</a></h3>
 
 The handling of default arguments is different as they are checked at declaration time for functions, but at instantiation for function templates.
 
@@ -454,8 +476,9 @@ int main()
 }
 </pre> -- <i>end example</i>]
 
-<h2><a name="dependent_name">Dependent names</a></h2>
-<h3>Access to declarations after function (template) declaration</h3>
+<h3><a name="dependent_name">Dependent names</a></h3>
+
+<h4>Access to declarations after function (template) declaration</h4>
 
 <p>
 [<i>Example:</i> <pre>
@@ -495,7 +518,7 @@ void h() {
 }
 </pre> -- <i>end example</i>]
 
-<h3>Necessity of <code>typename</code> and <code>template</code></h3>
+<h4>Necessity of <code>typename</code> and <code>template</code></h4>
 
 When accessing dependent names additional syntax is required in certain cases.
 <p>
@@ -531,32 +554,14 @@ template&lt;class T&gt; void f(T* p) {
 }
 </pre> -- <i>end example</i>]
 
-
-<h2>(under consideration) multiple overloads with satisfied constraints</h2>
-
-Does Evolution intend to permit multiple, otherwise indistinguishable overloads of non-template functions with satisfied constraints?
-(The idea, if we remember it correctly, was that implementers (currently) evaluate such requires clauses eagerly, producing nothing more than "true" with which to distinguish them.)
-
-Among template specializations, you can easily have multiple such overloads.
-<p>
-[<i>Example:</i> <pre>
-template&lt;class T&gt;
-void f(T*) requires Integral&lt;T&gt;;   // #1
-template&lt;class T&gt;
-void f(T**) requires Integral&lt;T&gt;;  // #2
-
-void g(int *i) {f(&amp;i);} // calls #2 due to partial ordering
-</pre> -- <i>end example</i>]
-<p>
-where <code>(f#1)&lt;int*&gt;</code> and <code>(f#2)&lt;int&gt;</code> are candidates with the same signature (as normal functions, not according to [defns.signature.spec]!) and satisfied constraints.
-
-<h2>With abbreviated Concepts syntax</h2>
+</p><h3 name=specialize_or_overload">Specialize or Overload</h3>
 
 Whether to specialize or overload depends on whether the first declaration is a function or a function template.
 <p>
-[<i>Example:</i> <pre>
-
- // libraries' code
+With the "Constrained auto" syntax adopted in P1142:
+<p>
+[<i>Example:</i> </p><pre>
+   // library code
    template&lt;class T&gt;
    concept Container=/*...*/;
 
@@ -564,49 +569,36 @@ Whether to specialize or overload depends on whether the first declaration is a 
    struct Button : Widget {};
 
    // user code
-   void f(Container&amp;) {}
+   void f(Container auto&amp;) {}
    template&lt;&gt; void f(std::vector&lt;int&gt;&amp;) {} // OK
 
    void g(Widget&amp;) {}
    template&lt;&gt; void g(Button&amp;) {} // error
 </pre> -- <i>end example</i>]
 <p>
-<h3>Difference between "auto f(X x) -&gt; X;" and "auto f(X x) -&gt; decltype(x);"</h3>
-
-If we understand the (now popular) "independent types" rule, when <code>X</code> is a concept the first of these serves as a sanity check on a deduced return type and the second is just a trailing return type.
-
-<h3>Function parameters with visually indistinguishable types</h3>
-
-Again, with independent types:
+With the abbreviated syntax from the Concepts TS the difference between <code>f</code> and <code>g</code> becomes less visible:
 <p>
-[<i>Example:</i> <pre>
-  void f(Type a,Type b) {
-    static_assert(std::is_same_v&lt;decltype(a),decltype(b)&gt;);  // OK
-  }
+[<i>Example:</i> </p><pre>
+   // user code
+   void f(Container&amp;) {}
+   template&lt;&gt; void f(std::vector&lt;int&gt;&amp;) {} // OK
 
-  void f(Concept a,Concept b) {
-    static_assert(std::is_same_v&lt;decltype(a),decltype(b)&gt;);  // fails for some specializations
-  }
+   void g(Widget&amp;) {}
+   template&lt;&gt; void g(Button&amp;) {} // error
 </pre> -- <i>end example</i>]
-<p>
-
-<h3>Local variables (in any function) with visually indistinguishable types</h3>
-And this is just the same thing, but vertically:
-<p>
-[<i>Example:</i> <pre>
-  void f() {
-    Concept x=foo();
-    Concept y=bar();
-    static_assert(std::is_same_v&lt;decltype(x),decltype(y)&gt;);  // may fail
-  }
-</pre> -- <i>end example</i>]
-<p> 
 
 <hr>
-Authors:<br>
-Davis Herring<br>
-Roger Orr
+<h3 name="history">Revision history</h3>
+
+<ul>
+  <li>P1392R0 (this document): "Specialize or Overload" revised following adoption of P1142 into the C++ Working Paper.<br>
+  Removal of "multiple overloads with satisfied constraints" is this is specific to the Concepts TS merging discussion.<br>
+  Other additional minor edits.</li>
+  <li>Pre-publication: A first, informal, version of this paper was produced in Jun 2018 for use during discussion in Rapperswil and attached to the EWG Wiki.</li>
+</ul>
+<hr>
 <p>
+<h3 name="acknowledgements">Acknowledgements</h3>
 Thanks to those who gave additional suggestions and examples, including:
 <ul>
 <li>Richard Smith
@@ -614,5 +606,6 @@ Thanks to those who gave additional suggestions and examples, including:
 <li>Sam Finch
 <li>Thomas Russell
 </ul>
+Any </i>errors</i> in this paper are the responsiblity of the paper authors.
 </body>
 </html>
