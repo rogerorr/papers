@@ -20,9 +20,11 @@ Target audience: All of WG21<br/>
 
 <h2>Abstract</h2>
 
-The Direction Group has been asked to look at ABI breakage. The first step was to solicit input from EWG/LEWG to try and capture the variety of issues 
-covered by the single term "ABI breakage".
+The Direction Group has been asked to look at ABI (Application Binary Interface) breakage. Note that this is different from, but related to, the API (Application Programming Interface).
 <p>
+The first step was to solicit input from EWG/LEWG to try and capture the variety of issues
+covered by the single term "ABI breakage".
+<br>
 This document is an informal summary of comments, including many of those made on the two reflectors.
 <p>
 Thank you to all who have provided input; errors and omissions remain, as usual, the fault of the author.
@@ -30,7 +32,7 @@ Thank you to all who have provided input; errors and omissions remain, as usual,
 <h2>Table of Contents</h2>
 <ol>
 <li><a href="#original"> Original statement of the concern </a>
-<li><a href="#meta"> Meta Comment </a>
+<li><a href="#meta"> Meta Comments </a>
 <li><a href="#past"> Past ABI breaks </a>
 <li><a href="#implementation"> Implementation related </a>
 <li><a href="#deprecation"> Changes with 'deprecation' </a>
@@ -49,7 +51,7 @@ There seems to be several cases on a spectrum of Performance vs Stability.
 Cases 1-4:
 <ol>
 <li>NEVER break ABI : this is the hope and the most stable.
-<li>Break ABI on a case by case basis e.g. SSO
+<li>Break ABI on a case by case basis e.g. SSO (small string optimisation)
 <li>Break ABI at key declared boundary releases, e.g.  allow break every 12 years, or every 4 releases
 <li>Break ABI at will, e.g. every release, most Performance
 </ol><p>
@@ -58,7 +60,29 @@ Case 2: we have done that before, but it is unpredictable to users<br/>
 Case 3: We have never tried this before, the question is what is the appropriate time frame between breakage<br/>
 Case 4: this is the fastest moving, most performance, and the least stability.
 
-<h1 id="meta"> 2. Meta Comment </h1>
+<h1 id="meta"> 2. Meta Comments </h1>
+
+<h2>What is meant by "the C++ ABI" ?</h2>
+
+There is no ABI specified in the C++ standard; implementation details are left to each implementor.<br>
+However, each implementation will have made a variety of decisions about the ABI.
+<p>
+Some implementations have a published ABI - for example on x64 many implementations conform to the Itanium specification (which applies to more than just the Intel Itanium chipset.)
+<p>
+An ABI covers two separable concerns:
+<ol>
+<li>The first, foundational, concern is how C++ types and functions map into the underlying architecture. This includes such things as data structure layout, primitive types, calling convention, and register usage.
+<li>The second concern is the ABI of the standard library. This will depend heavily on specific implementation details of library types and classes.
+</ol>
+
+Changes to the first part generally make it extremely difficult to safely combine binaries with old and new ABI into a single executable.
+<p>
+Changes to the library can sometimes be accommodated in the library ABI by using sufficiently clever programming to provide backwards compatibility.
+<p>
+However, the degree to which this is possible, in any given case, can vary between implementors depending on their library implementation.
+
+
+<h2>Impact on proposals</h2>
 
 One thing someone found particularly noteworthy: in the San Diego meeting with its
 preponderance of new-attendees and papers from new attendees, we saw a
@@ -84,7 +108,7 @@ When <code>::operator new()</code> started throwing <code>std::bad_alloc</code>,
 <ol>
 <li> Existing binaries that were not designed to have exceptions propagating through them suddenly had exceptions propagating
    through them 
-<li> Existing <code>new_handlers</code> were retroactively made non-conforming
+<li> Existing binaries that checked the return value of <code>new</code> no longer handled out of memory conditions
 </ol>
 Compilers and runtimes incorporated some devious tricks to mitigate the potentially harmful effects of this necessary change.
 <p>
@@ -149,7 +173,8 @@ didn't measure up to the perceived cost of an ABI break:
 <li> P1249 (allow initializer_list to be of non-const T)
 </ul>
 <p>
-ABI was the reason why we didn't make destructors implicitly virtual in polymorphic classes.  If we can take an ABI break we can fix that.
+ABI was the reason why we didn't make destructors implicitly virtual in polymorphic classes.  "If we can take an ABI break we can fix that."<br>
+Note: the ABI was not the sole reason; and the impact of this change would be massive at this stage in the life of the language.
 <p>
 Adding new virtual functions to <code>std::num_get</code> and <code>std::num_put</code> was proposed for short float,
 but I believe has now been dropped from the proposal.
