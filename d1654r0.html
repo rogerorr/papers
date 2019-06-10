@@ -14,7 +14,7 @@
 ISO/IEC JTC1 SC22 WG21 D1654R0<br/>
 Roger Orr &lt;rogero@howzatt.demon.co.uk&gt;<br/>
 Target audience: All of WG21<br/>
-2019-05-30<br/>
+2019-06-10<br/>
 
 <h1 align="center">ABI breakage - summary of initial comments</h1>
 
@@ -25,7 +25,7 @@ The Direction Group has been asked to look at ABI (Application Binary Interface)
 The first step was to solicit input from EWG/LEWG to try and capture the variety of issues
 covered by the single term "ABI breakage".
 <br>
-This document is an informal summary of comments, including many of those made on the two reflectors.
+This document is an informal summary of comments, including many of those made on the two evolution reflectors.
 <p>
 Thank you to all who have provided input; errors and omissions remain, as usual, the fault of the author.
 
@@ -64,12 +64,17 @@ Case 4: this is the fastest moving, most performance, and the least stability.
 
 <h2>What is meant by "the C++ ABI" ?</h2>
 
-There is no ABI specified in the C++ standard; implementation details are left to each implementor.<br>
+There is no <i>ABI</i> specified in the C++ standard; implementation details are left to each implementor.<br>
 However, each implementation will have made a variety of decisions about the ABI.
 <p>
 Some implementations have a published ABI - for example on x64 many implementations conform to the Itanium specification (which applies to more than just the Intel Itanium chipset.)
 <p>
-An ABI covers two separable concerns:
+Some implementations publish guarantees about stability of their ABI. For example, Red Hat publish an 
+<a href="https://access.redhat.com/articles/rhel8-abi-compatibility"> "Application Compatibility GUIDE" </a>; Appendix A guarantees compatability for three releases for various components, including <code>libstdc++</code>.
+<p>
+Such documents and guarantees will not, in general, be under the control of WG21.
+<p>
+<h3>An ABI covers two separable concerns:</h3>
 <ol>
 <li>The first, foundational, concern is how C++ types and functions map into the underlying architecture. This includes such things as data structure layout, primitive types, calling convention, and register usage.
 <li>The second concern is the ABI of the standard library. This will depend heavily on specific implementation details of library types and classes.
@@ -77,10 +82,9 @@ An ABI covers two separable concerns:
 
 Changes to the first part generally make it extremely difficult to safely combine binaries with old and new ABI into a single executable.
 <p>
-Changes to the library can sometimes be accommodated in the library ABI by using sufficiently clever programming to provide backwards compatibility.
+Changes to the library can sometimes be accommodated in the library ABI by using sufficiently clever programming to provide backwards compatibility with an existing binary library.
 <p>
-However, the degree to which this is possible, in any given case, can vary between implementors depending on their library implementation.
-
+However, the degree to which this is possible, in any given case, can vary between implementors depending on their library implementation. It can be hard to know, without specialist knowledge, how feasible this might be in a specific case.
 
 <h2>Impact on proposals</h2>
 
@@ -91,16 +95,14 @@ While that isn't <b>proof</b> of anything, I <b>suspect</b> that there are many 
 that experienced committee members are filtering early because we have
 internalized "that's an ABI break and thus a non-starter."
 <p>
-I don't have anything on my list that individually feels (even to me) like
-"we should break ABI for this" - the most impactful bit in my area would
-probably be improvements to hashing. But I <b>suspect</b> that if we plan for it
+They didn't have anything on my list that individually felt (even to them) like
+"we should break ABI for this" - the most impactful bit would probably be improvements to hashing. But they <b>suspect</b> that if we plan for it
 with enough lead time we'll come up with a lot of quality-of-life and minor
 performance improvements that add up to a lot.
 <p>
-Or, as I've said elsewhere: if we are just going to let "that's an ABI
-break" be an automatic veto, we should probably update our published
-priorities. I don't think "ABI stability" is listed anywhere as a "you can
-rely on this" feature for C++.
+Or, if we are just going to let "that's an ABI
+break" be an automatic veto, we should probably update our published priorities.
+They don't think "ABI stability" is listed anywhere as a "you can rely on this" feature for C++.
 
 <h1 id="past"> 3. Past ABI breaks </h1>
 
@@ -125,8 +127,8 @@ Adding the <code>std::system_error</code> base class to <code>std::ios_failure</
  not in a header, so the precise type thrown is out of your control) is a silent change in runtime behaviour, and only on
  the exceptional path.
 <p>
-Buy me a beer some time and I'll tell you the story of Schr&#246;dinger's Catch, which allows a single catch handler to work for 
-two distinct types of <code>std::ios_failure</code>.
+One implementor remarked: "Buy me a beer some time and I'll tell you the story of Schr&#246;dinger's Catch, which allows a single catch handler to work for 
+two distinct types of <code>std::ios_failure</code>."
 )
 </div>
 <p>
@@ -171,6 +173,7 @@ didn't measure up to the perceived cost of an ABI break:
 <li> P1197 (A non-allocating overload of error_category::message())
 <li> P1198 (Adding error_category::failed())
 <li> P1249 (allow initializer_list to be of non-const T)
+<li> LWG3211 std::tuple&lt;&gt; should be trivially constructible
 </ul>
 <p>
 ABI was the reason why we didn't make destructors implicitly virtual in polymorphic classes.  "If we can take an ABI break we can fix that."<br>
