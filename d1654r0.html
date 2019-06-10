@@ -118,7 +118,7 @@ The changes to the definition of triviality could potentially have changed calli
  but to avoid that the Itanium ABI uses the C++98 definition of POD, not the current definition
  of trivial and standard layout, because that's evolved over time.
 <p>
-Adding the <code>std::system_error</code> base class to <code>std::ios_failure</code> for C++11 was a particularly nasty one for me.
+Adding the <code>std::system_error</code> base class to <code>std::ios_failure</code> for C++11 was a particularly nasty one for one implementor.
 <div style="margin-left: 3em">
 (The reason that one's so troublesome is that changing the type of exception thrown by a library doesn't produce any linkage
  changes. You can still link to it as before, but suddenly an exception that used to get caught now passes straight through
@@ -129,11 +129,11 @@ Adding the <code>std::system_error</code> base class to <code>std::ios_failure</
 <p>
 One implementor remarked: "Buy me a beer some time and I'll tell you the story of Schr&#246;dinger's Catch, which allows a single catch handler to work for 
 two distinct types of <code>std::ios_failure</code>."
-)
+
 </div>
 <p>
 In C++11 <code>std::char_traits</code> changed the parameter types of its members from <code>const char_type&</code> to passing <code>char_type</code> by value
- (I think we still don't actually implement that in libstdc++).
+ (It is believeed this is still not actually implemented in libstdc++).
 <p>
 I think the LWG issues list records quite a few breaks between C++98 and C++03 that probably wouldn't be acceptable today,
 but back then almost nobody actually implemented the full standard anyway, so making breaking changes was just part of
@@ -160,7 +160,7 @@ A selected list of papers that have been to LEWG or LEWG-I and rejected (sometim
 without further discussion) because their perceived value <b>individually</b>
 didn't measure up to the perceived cost of an ABI break:
 <ul>
-<li> LEWG 1053 (Unify algorithms with operator and function object variants)
+<li> <a href="http://wg21.link/LEWG1053">LEWG1053</a> (Unify algorithms with operator and function object variants)
 <li> D.7 - remove uncaught_exception?
 <li> system_error should return string_view not std::string
 <li> heterogenous lookup could be smoother
@@ -169,18 +169,18 @@ didn't measure up to the perceived cost of an ABI break:
 <li> push_back returns T&
 <li> int128 / uint128 can't be added (because maxint_t is part of the ABI)
 <li> mark bitset trivial?
-<li> P1196 (Value-based std::error_category comparison)
-<li> P1197 (A non-allocating overload of error_category::message())
-<li> P1198 (Adding error_category::failed())
-<li> P1249 (allow initializer_list to be of non-const T)
-<li> LWG3211 std::tuple&lt;&gt; should be trivially constructible
+<li> <a href="http://wg21.link/P1196">P1196</a> (Value-based std::error_category comparison)
+<li> <a href="http://wg21.link/P1197">P1197</a> (A non-allocating overload of error_category::message())
+<li> <a href="http://wg21.link/P1198">P1198</a> (Adding error_category::failed())
+<li> <a href="http://wg21.link/P1249">P1249</a> (Allow initializer_list to be of non-const T)
+<li> <a href="http://wg21.link/LWG3211">LWG3211</a> (std::tuple&lt;&gt; should be trivially constructible)
 </ul>
 <p>
 ABI was the reason why we didn't make destructors implicitly virtual in polymorphic classes.  "If we can take an ABI break we can fix that."<br>
 Note: the ABI was not the sole reason; and the impact of this change would be massive at this stage in the life of the language.
 <p>
 Adding new virtual functions to <code>std::num_get</code> and <code>std::num_put</code> was proposed for short float,
-but I believe has now been dropped from the proposal.
+but it is believed has now been dropped from the proposal.
 <p>
 
 <h1 id="reverted"> 7. Changes reverted because of ABI breaks </h1>
@@ -200,29 +200,29 @@ a significant performance and optimization hit from using
 Which had the following reply: This is slightly different from, say, <code>list::size</code> and CoW string; there
 was no change in the specification that would've caused or prevented
 such a passing convention. There's fairly little we could've done in
-the standard to impact this.)
+the standard to impact this.
 </div>
 <p>
 Numerous aspects of <code>std::unordered_map</code>'s API and ABI force seriously suboptimal implementation strategies.
-(See SwissTable talks.)
+(See "SwissTable" talks.)
 <p>
 Same for <code>std::map</code>. (For example btree-based sorted containers.)
 <p>
-The most frustrating for me personally is <code>std::vector</code>, which cannot support small-size-optimization due to stability
+The most frustrating for one person is <code>std::vector</code>, which cannot support small-size-optimization due to stability
 of pointers & iterators across move.
 <p>
 We changed the return type of *<code>::emplace_back</code> from <code>void</code> to return a reference to the new element.
 We <i>didn't</i> do the same for <code>push_back</code> because that would have broken ABI.
 If we could break ABI we could make them consistent and remove one reason to (ab)use <code>emplace_back</code>.
 <div style="margin-left: 3em">
-Further discussion
+<i>Further discussion</i>
 <p>
 Is that really a problematic ABI break for some compilers? In gcc-land we might stick an abi_tag on it so
 the new version gets a different mangling, but I believe the ABI is not
 broken. Unless of course you start introspecting and use
 <code>decltype(c.push_back(e))</code>, but that's indirect and seems acceptable. 
 <p>
-In reply: 
+<i>In reply:</i>
 <p>
 Without the abi-tag the old and new versions of the function have the same
 mangled name.
@@ -239,7 +239,7 @@ symbol, which doesn't actually return anything. The new TU calls the old
 symbol, and there is junk on the stack where it expects to find a return
 value. 
 <p>
-Further reply:
+<i>Further reply:</i>
 <p>
 Thanks. Sorry, my message was not clear enough. I know all that. My point
 was that some annotation like abi-tag easily avoids this issue. And you
@@ -257,6 +257,6 @@ Library Fundamentals defines <code>std::packaged_task</code> and <code>std::prom
 which adds a pointer member to the class. That was originally proposed as a change to the standard types when LFTS was enabled,
 which would have been an ABI break. Instead the types in LFTS are distinct types in a distinct namespace.
 <p>
-LWG 2503 "multiline option should be added to syntax_option_type" is an ABI break.
+<a href="http://wg21.link/LWG2503">LWG2503</a> (multiline option should be added to syntax_option_type) is an ABI break.
 
 </body>
