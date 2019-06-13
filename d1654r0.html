@@ -39,6 +39,7 @@ Thank you to all who have provided input; errors and omissions remain, as usual,
 <li><a href="#rejected"> Changes rejected because of ABI breaks </a>
 <li><a href="#reverted"> Changes reverted because of ABI breaks </a>
 <li><a href="#future"> Future ABI breaks </a>
+<li><a href="#reference"> Additional resources </a>
 </ol>
 
 <h1 id="original"> 1. Original statement of the concern </h1>
@@ -76,7 +77,7 @@ Such documents and guarantees will not, in general, be under the control of WG21
 <p>
 <h3>An ABI covers two separable concerns:</h3>
 <ol>
-<li>The first, foundational, concern is how C++ types and functions map into the underlying architecture. This includes such things as data structure layout, primitive types, calling convention, and register usage.
+<li>The first, foundational, concern is how C++ types and functions map into the underlying architecture. This includes such things as data structure layout, primitive types, calling convention, polymorphism internal data structures, and register usage.
 <li>The second concern is the ABI of the standard library. This will depend heavily on specific implementation details of library types and classes.
 </ol>
 
@@ -106,6 +107,15 @@ They don't think "ABI stability" is listed anywhere as a "you can rely on this" 
 
 <h1 id="past"> 3. Past ABI breaks </h1>
 
+The std::string class was changed for C++11, in response to the addition of threads, to make more of its operations safely concurrently executable (which invalidated copy-on-write implementations.) This included changing <code>data()</code> to require NUL termination.
+<p>
+Additonally, the change was designed to support the 'small string optimisation', which improves performance for strings short enough to take advantage of it.
+<p>
+Implementing this requires an ABI change in general as the size of the class changes, as does the layout and meaning of its members.
+<p>
+gcc provided a dual ABI to support both pre- and post- C++11 code, but it is still the case that by default many installations of gcc still use the pre C++11 implementation.
+
+<p>
 When <code>::operator new()</code> started throwing <code>std::bad_alloc</code>, two binary incompatibilities were introduced:
 <ol>
 <li> Existing binaries that were not designed to have exceptions propagating through them suddenly had exceptions propagating
@@ -191,6 +201,9 @@ The change from <code>lock_guard&lt;T&gt;</code> to <code>lock_guard<T...></code
 
 <h1 id="future"> 8. Future ABI breaks </h1>
 
+When we tried to add monadic optionals, we were concerned that we cannot pass overload sets to callables. This (passing overload sets to callables) would require a future planned ABI breakage.
+<p>
+
 (Not an ABI break taken, but one that should have been (or should be) taken)
 <p>
 make <code>std::unique_ptr&lt;T&gt;</code> be passed as efficiently as <code>T*</code>. Currently there is
@@ -258,5 +271,21 @@ which adds a pointer member to the class. That was originally proposed as a chan
 which would have been an ABI break. Instead the types in LFTS are distinct types in a distinct namespace.
 <p>
 <a href="http://wg21.link/LWG2503">LWG2503</a> (multiline option should be added to syntax_option_type) is an ABI break.
+
+<h1 id="reference"> 9. Additional resources </h1>
+
+See these links for other discussions on binary compatability issues:
+<ul>
+    <li><a href="https://community.kde.org/Policies/Binary_Compatibility_Issues_With_C%2B%2B">https://community.kde.org/Policies/Binary_Compatibility_Issues_With_C++</a>
+    <li><a href="https://community.kde.org/Policies/Binary_Compatibility_Examples">https://community.kde.org/Policies/Binary_Compatibility_Examples</a>
+    <li><A href="https://wiki.qt.io/Qt-Version-Compatibility">https://wiki.qt.io/Qt-Version-Compatibility</a> Qt pledged ABI compatibility for major releases (almost 10 years)
+</ul>
+
+There's some tooling around managing the ABI:
+<ul>
+    <li><a href="https://abi-laboratory.pro/">https://abi-laboratory.pro/</a>
+    <li>a href="https://sourceware.org/libabigail/">https://sourceware.org/libabigail/</a>
+    <li><a href="http://lists.llvm.org/pipermail/llvm-dev/2018-September/126472.html">Proposal: llvm-tapi, adding YAML/stub generation for ELF linking support, which morphed into the new llvm-elfabi tool</a>
+</ul>
 
 </body>
