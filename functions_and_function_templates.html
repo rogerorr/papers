@@ -1,17 +1,24 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<title>D1392R0: Differences Between Functions and Function Templates</title>
+<title>D1392R1: Differences Between Functions and Function Templates</title>
 </head>
 
 <body>
-ISO/IEC JTC1 SC22 WG21 D1392R0<br/>
+ISO/IEC JTC1 SC22 WG21 D1392R1<br/>
 Davis Herring &lt;herring@lanl.gov&gt;<br/>
 Roger Orr &lt;rogero@howzatt.demon.co.uk&gt;<br/>
 Target audience: All of WG21<br/>
-2019-01-14<br/>
+2019-06-20<br/>
 
 <h1 align="center">Differences Between Functions and Function Templates</h1>
+
+<h2>Revision History</h2>
+
+<h4>R0 -> R1</h4>
+<ul>
+<li>Added explanation for type mismatch in an example
+</ul>
 
 <h2>Abstract</h2>
 
@@ -132,7 +139,7 @@ auto f(const T&amp;) {
 
 void g(short s) {
   auto a=f(s);
-  a=f(s+1);      // error -- type mismatch
+  a=f(s+1);      // error -- type mismatch (uses a different instantiation, since s+1 is promoted to int)
 }
 </pre> -- <i>end example</i>]
 
@@ -613,6 +620,7 @@ Thanks to those who gave additional suggestions and examples, including:
 <li>Hubert Matthews
 <li>Sam Finch
 <li>Thomas Russell
+<li>Tony Van Eerd
 </ul>
 Any <i>errors</i> in this paper are the responsiblity of the paper authors.
 </body>
