@@ -14,7 +14,7 @@
 ISO/IEC JTC1 SC22 WG21 D1654R1<br/>
 Roger Orr &lt;rogero@howzatt.demon.co.uk&gt;<br/>
 Target audience: All of WG21<br/>
-2019-06-13<br/>
+2020-02-11<br/>
 
 <h1 align="center">ABI breakage - summary of initial comments</h1>
 
@@ -31,6 +31,7 @@ Thank you to all who have provided input; errors and omissions remain, as usual,
 
 <h2>Table of Contents</h2>
 <ol>
+<li><a href="#history"> Revision History </a>
 <li><a href="#original"> Original statement of the concern </a>
 <li><a href="#meta"> Meta Comments </a>
 <li><a href="#past"> Past ABI breaks </a>
@@ -42,7 +43,13 @@ Thank you to all who have provided input; errors and omissions remain, as usual,
 <li><a href="#reference"> Additional resources </a>
 </ol>
 
-<h1 id="original"> 1. Original statement of the concern </h1>
+<h1 id="history"> 1. Revision History </h1>
+
+<ul>
+<li>Rev 1. Add description of two additional items under "Past ABI breaks": data races in exceptions, and making destructors noexcept by default
+</ul>
+
+<h1 id="original"> 2. Original statement of the concern </h1>
 <p>
 From Michael Wong's original email to EWG/LEWG:
 <p>
@@ -61,7 +68,7 @@ Case 2: we have done that before, but it is unpredictable to users<br/>
 Case 3: We have never tried this before, the question is what is the appropriate time frame between breakage<br/>
 Case 4: this is the fastest moving, most performance, and the least stability.
 
-<h1 id="meta"> 2. Meta Comments </h1>
+<h1 id="meta"> 3. Meta Comments </h1>
 
 <h2>What is meant by "the C++ ABI" ?</h2>
 
@@ -105,11 +112,22 @@ Or, if we are just going to let "that's an ABI
 break" be an automatic veto, we should probably update our published priorities.
 They don't think "ABI stability" is listed anywhere as a "you can rely on this" feature for C++.
 
-<h1 id="past"> 3. Past ABI breaks </h1>
+<h1 id="past"> 4. Past ABI breaks </h1>
 
+<h2> Past proposals rejected because of ABI break </h2>
+
+When <code>exception-ptr</code> and <code>shared_future</code> were added for C++11 there was an ballot comment raised by GB 74 about the introduction of race conditions where an exception object was accessed by two threads.
+The GB proposed resolution was to require exceptions to be copied, removing the data race.
+<br/>
+One of the main reasons why this was rejected was that "Passing copy information will cause at least one major platform to take at least 6 years before the feature could be deployed" (See <a href="http://wiki.edg.com/bin/view/Wg21madrid/MinutesExceptionDataRaces"> Minutes of the Discussion on Data Races in Exceptions <a/>
+
+<h2> Past ABI breaks accepted </h2>
+
+C++11 made destructors noexcept by default; this was a breaking change as existing C++03 code that threw an exception in a destructor would terminate if called from C++11 code.
+<p>
 The std::string class was changed for C++11, in response to the addition of threads, to make more of its operations safely concurrently executable (which invalidated copy-on-write implementations.) This included changing <code>data()</code> to require NUL termination.
 <p>
-Additonally, the change was designed to support the 'small string optimisation', which improves performance for strings short enough to take advantage of it.
+Additionally, the change was designed to support the 'small string optimisation', which improves performance for strings short enough to take advantage of it.
 <p>
 Implementing this requires an ABI change in general as the size of the class changes, as does the layout and meaning of its members.
 <p>
@@ -118,8 +136,7 @@ gcc provided a dual ABI to support both pre- and post- C++11 code, but it is sti
 <p>
 When <code>::operator new()</code> started throwing <code>std::bad_alloc</code>, two binary incompatibilities were introduced:
 <ol>
-<li> Existing binaries that were not designed to have exceptions propagating through them suddenly had exceptions propagating
-   through them 
+<li> Existing binaries that were not designed to have exceptions propagating through them suddenly had exceptions propagating through them 
 <li> Existing binaries that checked the return value of <code>new</code> no longer handled out of memory conditions
 </ol>
 Compilers and runtimes incorporated some devious tricks to mitigate the potentially harmful effects of this necessary change.
@@ -152,19 +169,19 @@ finishing the implementation!
 P0482 (char8_t) changed the return type of the <code>u8string</code> and <code>generic_u8string</code> member functions of
  <code>std::filesystem::path</code> for C++20.
 
-<h1 id="implementation"> 4. Implementation related </h1>
+<h1 id="implementation"> 5. Implementation related </h1>
 
 Whether move constructors should affect whether a type is passed in a register or on the stack
 <p>
 Whether empty class types as function arguments take up a slot in the argument list or not.
 
-<h1 id="deprecation"> 5. Changes with 'deprecation' </h1>
+<h1 id="deprecation"> 6. Changes with 'deprecation' </h1>
 
 The removal of <code>uncaught_exception</code> wasn't really an ABI break due to zombie names.
 <p>
 Same for get_unexpected/set_unexpected, etc.
 
-<h1 id="rejected"> 6. Changes rejected because of ABI breaks </h1>
+<h1 id="rejected"> 7. Changes rejected because of ABI breaks </h1>
 
 A selected list of papers that have been to LEWG or LEWG-I and rejected (sometimes
 without further discussion) because their perceived value <b>individually</b>
@@ -193,13 +210,13 @@ Adding new virtual functions to <code>std::num_get</code> and <code>std::num_put
 but it is believed has now been dropped from the proposal.
 <p>
 
-<h1 id="reverted"> 7. Changes reverted because of ABI breaks </h1>
+<h1 id="reverted"> 8. Changes reverted because of ABI breaks </h1>
 
 The addition of <code>std::default_order</code> to associative containers was reverted because it was an ABI break.
 <p>
 The change from <code>lock_guard&lt;T&gt;</code> to <code>lock_guard<T...></code> was reverted because it was an ABI break.
 
-<h1 id="future"> 8. Future ABI breaks </h1>
+<h1 id="future"> 9. Future ABI breaks </h1>
 
 When we tried to add monadic optionals, we were concerned that we cannot pass overload sets to callables. This (passing overload sets to callables) would require a future planned ABI breakage.
 <p>
@@ -272,7 +289,7 @@ which would have been an ABI break. Instead the types in LFTS are distinct types
 <p>
 <a href="http://wg21.link/LWG2503">LWG2503</a> (multiline option should be added to syntax_option_type) is an ABI break.
 
-<h1 id="reference"> 9. Additional resources </h1>
+<h1 id="reference"> 10. Additional resources </h1>
 
 See these links for other discussions on binary compatability issues:
 <ul>
