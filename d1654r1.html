@@ -14,7 +14,7 @@
 ISO/IEC JTC1 SC22 WG21 D1654R1<br/>
 Roger Orr &lt;rogero@howzatt.demon.co.uk&gt;<br/>
 Target audience: All of WG21<br/>
-2020-02-11<br/>
+2020-02-13<br/>
 
 <h1 align="center">ABI breakage - summary of initial comments</h1>
 
@@ -46,7 +46,7 @@ Thank you to all who have provided input; errors and omissions remain, as usual,
 <h1 id="history"> 1. Revision History </h1>
 
 <ul>
-<li>Rev 1. Add description of two additional items under "Past ABI breaks": data races in exceptions, and making destructors noexcept by default
+<li>Rev 1. Add description of two additional items (both in C++11) under "Past ABI breaks": data races with <code>exception_ptr</code>, and making destructors <code>noexcept</code> by default
 </ul>
 
 <h1 id="original"> 2. Original statement of the concern </h1>
@@ -116,7 +116,7 @@ They don't think "ABI stability" is listed anywhere as a "you can rely on this" 
 
 <h2> Past proposals rejected because of ABI break </h2>
 
-When <code>exception-ptr</code> and <code>shared_future</code> were added for C++11 there was an ballot comment raised by GB 74 about the introduction of race conditions where an exception object was accessed by two threads.<br/>
+When <code>exception_ptr</code> and <code>shared_future</code> were added for C++11 there was an ballot comment raised by GB 74 about the introduction of race conditions where an exception object was accessed by two threads.<br/>
 The GB proposed resolution was to require exceptions to be copied, removing possibility of the data race.
 <p/>
 One of the main reasons why this was rejected was that "Passing copy information will cause at least one major platform to take at least 6 years before the feature could be deployed" (See <a href="http://wiki.edg.com/bin/view/Wg21madrid/MinutesExceptionDataRaces"> Minutes of the Discussion on Data Races in Exceptions <a/>
