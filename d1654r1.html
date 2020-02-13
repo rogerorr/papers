@@ -116,16 +116,28 @@ They don't think "ABI stability" is listed anywhere as a "you can rely on this" 
 
 <h2> Past proposals rejected because of ABI break </h2>
 
-When <code>exception-ptr</code> and <code>shared_future</code> were added for C++11 there was an ballot comment raised by GB 74 about the introduction of race conditions where an exception object was accessed by two threads.
-The GB proposed resolution was to require exceptions to be copied, removing the data race.
-<br/>
+When <code>exception-ptr</code> and <code>shared_future</code> were added for C++11 there was an ballot comment raised by GB 74 about the introduction of race conditions where an exception object was accessed by two threads.<br/>
+The GB proposed resolution was to require exceptions to be copied, removing possibility of the data race.
+<p/>
 One of the main reasons why this was rejected was that "Passing copy information will cause at least one major platform to take at least 6 years before the feature could be deployed" (See <a href="http://wiki.edg.com/bin/view/Wg21madrid/MinutesExceptionDataRaces"> Minutes of the Discussion on Data Races in Exceptions <a/>
+However, another implementation already did cloning as preferred, and did not want to introduce a reference count mechanism.
+<p>
+The result was wording in C++11 that read (18.8.5 [propagation]/p7)
+<blockquote>
+For purposes of determining the presence of a data race, operations on <code>exception_ptr</code> objects shall
+access and modify only the <code>exception_ptr</code> objects themselves and not the exceptions they refer to.
+Use of <code>rethrow_exception</code> on <code>exception_ptr</code> objects that refer to the same exception object shall
+not introduce a data race. [ <i>Note:</i> if <code>rethrow_exception</code> rethrows the same exception object (rather
+than a copy), concurrent access to that rethrown exception object may introduce a data race. Changes
+in the number of <code>exception_ptr</code> objects that refer to a particular exception do not introduce a data
+race. <i>—end note</i> ]
+</blockquote>
 
 <h2> Past ABI breaks accepted </h2>
 
-C++11 made destructors noexcept by default; this was a breaking change as existing C++03 code that threw an exception in a destructor would terminate if called from C++11 code.
+C++11 made destructors <code>noexcept</code> by default; this was a breaking change as existing C++03 code that threw an exception in a destructor would terminate if called from C++11 code.
 <p>
-The std::string class was changed for C++11, in response to the addition of threads, to make more of its operations safely concurrently executable (which invalidated copy-on-write implementations.) This included changing <code>data()</code> to require NUL termination.
+The <code>std::string</code> class was changed for C++11, in response to the addition of threads, to make more of its operations safely concurrently executable (which invalidated copy-on-write implementations.) This included changing <code>data()</code> to require NUL termination.
 <p>
 Additionally, the change was designed to support the 'small string optimisation', which improves performance for strings short enough to take advantage of it.
 <p>
