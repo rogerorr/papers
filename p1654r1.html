@@ -11,7 +11,7 @@
 </head>
 
 <body>
-ISO/IEC JTC1 SC22 WG21 D1654R1<br/>
+ISO/IEC JTC1 SC22 WG21 P1654R1<br/>
 Roger Orr &lt;rogero@howzatt.co.uk&gt;<br/>
 Target audience: All of WG21<br/>
 2020-04-10<br/>
@@ -46,7 +46,12 @@ Thank you to all who have provided input; errors and omissions remain, as usual,
 <h1 id="history"> 1. Revision History </h1>
 
 <ul>
-<li>Rev 1. Add description of two additional items (both in C++11) under "Past ABI breaks": data races with <code>exception_ptr</code>, and making destructors <code>noexcept</code> by default
+<li>P1654R1. Add description of two additional items (both in C++11) under "Past ABI breaks":
+<ol type="A">
+<li> data races with <code>exception_ptr</code>, and
+<li> making destructors <code>noexcept</code> by default
+</ol>
+<li>P1654R0. Original version, summarizing email traffic and other comments on ABI breakages.
 </ul>
 
 <h1 id="original"> 2. Original statement of the concern </h1>
